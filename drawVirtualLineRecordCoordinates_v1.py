@@ -29,7 +29,7 @@ class captureCameraDrawLineRecordWidget(object):
             cv2.imshow("image", self.clone) 
             cv2.imwrite("samples/CaptureCameraFirstViewVirtualLineDrawed_v1.png", self.clone)
             
-            output_file = open("config/cameras.yml","a")
+            output_file = open("samples/cameras.yml","a")
             line = "  start_point: " + "(" + str(self.image_coordinates[0][0]) + "," + str(self.image_coordinates[0][1]) + ")" + "\n"
             output_file.write(line)
             line = "  end_point: " + "(" + str(self.image_coordinates[1][0]) + "," + str(self.image_coordinates[1][1]) + ")" + "\n"

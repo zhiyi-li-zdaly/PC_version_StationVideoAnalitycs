@@ -10,7 +10,7 @@ import nmap
 class findIPAddressAndCaptureViewofCameraWidget(object):
     def findIPAddressAndCatchCameraView(self):
         # Step 0: Search the same network and find available IP address 
-        output_file = open("config/cameras.yml","w")
+        output_file = open("samples/cameras.yml","w")
         nm = nmap.PortScanner()
         results = nm.scan(hosts='192.168.1.1/24', arguments='-sP')
         # print (results)
