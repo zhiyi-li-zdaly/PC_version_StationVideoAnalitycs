@@ -34,13 +34,9 @@ class findIPAddressAndCaptureViewofCameraWidget(object):
         # print ('IP_address:' + IP_address)
         # output_file.write('IP_address:' + IP_address)
 
-        line = '---\n'
-        output_file.write(line)
         line = 'cameras:\n'
         output_file.write(line)
-        line = '   - name: cam1\n'
-        output_file.write(line)
-        line = '     IP_address: ' + IP_address + '\n'
+        line = '  IP_address: ' + IP_address + '\n'
         output_file.write(line)
         output_file.close()
         
