@@ -6,6 +6,7 @@ import nmap
 class captureCameraDrawLineRecordWidget(object):
     def __init__(self):
         self.original_image = cv2.imread('samples/CaptureCameraFirstView_v1.png')
+        self.original_image = cv2.rotate(self.original_image, cv2.ROTATE_180)
         self.clone = self.original_image.copy()
 
         cv2.namedWindow('image')
@@ -25,6 +26,7 @@ class captureCameraDrawLineRecordWidget(object):
             print('Starting: {}, Ending: {}'.format(self.image_coordinates[0], self.image_coordinates[1]))
 
             # Draw line
+            # self.clone = cv2.rotate(self.clone, cv2.ROTATE_180)
             cv2.line(self.clone, self.image_coordinates[0], self.image_coordinates[1], (36,255,12), 2)
             cv2.imshow("image", self.clone) 
             cv2.imwrite("samples/CaptureCameraFirstViewVirtualLineDrawed_v1.png", self.clone)
