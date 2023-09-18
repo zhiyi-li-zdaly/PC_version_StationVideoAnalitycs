@@ -1,10 +1,39 @@
+# main_v5.py for version 4, adapt to real-time cameras
+# YOLOv5 🚀 by Ultralytics, AGPL-3.0 license
 # main_v7.py for version 7
 # Author: Zhiyi Li, Date: 20230911
 # Adapted from detect.py, to read configuration file for IP address and virtual lines. 
-# YOLOv5 🚀 by Ultralytics, AGPL-3.0 license
+"""
+Run YOLOv5 detection inference on images, videos, directories, globs, YouTube, webcam, streams, etc.
 
+Usage - sources:
+    $ python detect.py --weights yolov5s.pt --source 0                               # webcam
+                                                     img.jpg                         # image
+                                                     vid.mp4                         # video
+                                                     screen                          # screenshot
+                                                     path/                           # directory
+                                                     list.txt                        # list of images
+                                                     list.streams                    # list of streams
+                                                     'path/*.jpg'                    # glob
+                                                     'https://youtu.be/Zgi9g1ksQHc'  # YouTube
+                                                     'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
+
+Usage - formats:
+    $ python detect.py --weights yolov5s.pt                 # PyTorch
+                                 yolov5s.torchscript        # TorchScript
+                                 yolov5s.onnx               # ONNX Runtime or OpenCV DNN with --dnn
+                                 yolov5s_openvino_model     # OpenVINO
+                                 yolov5s.engine             # TensorRT
+                                 yolov5s.mlmodel            # CoreML (macOS-only)
+                                 yolov5s_saved_model        # TensorFlow SavedModel
+                                 yolov5s.pb                 # TensorFlow GraphDef
+                                 yolov5s.tflite             # TensorFlow Lite
+                                 yolov5s_edgetpu.tflite     # TensorFlow Edge TPU
+                                 yolov5s_paddle_model       # PaddlePaddle
+"""
 import cv2
 import yaml
+import requests
 import argparse
 import os
 import platform
@@ -111,6 +140,10 @@ def run(
     # height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = 640
     height = 480
+    # start_point = (int(3/10 * width), int(1/10 * height))
+    # end_point = (int(3/10 * width), int(9/10 * height))
+    color =(0, 255, 0)
+    thickness = 5
 
     # Read IP address and virtual lines from yml configuration file
     with open('samples/cameras.yml', 'r') as file: 
@@ -121,8 +154,7 @@ def run(
     IP_address = config_service['cameras']['IP_address']
     raw_start_point = config_service['cameras']['start_point']
     raw_end_point = config_service['cameras']['end_point']  
-    
-    
+        
     # Parse points from string to integer
     # tuple(map(int, test_str.split(', ')))
     # Remove parenthesis of a string
@@ -139,23 +171,15 @@ def run(
     print("end_point: ", end_point)
     print("start_point len: ", len(start_point))
     print("end_point len: ", len(end_point))
-        
+    #########################
 
-    # start_point = (int(3/10 * width), int(1/10 * height))
-    # end_point = (int(3/10 * width), int(9/10 * height))
-    color =(0, 255, 0)
-    thickness = 5
-
-    # source = "samples/sample1.mp4"
-    source = "rtsp://admin:AdminAdmin1@192.168.1.126:554/cam/realmonitor?channel=1&subtype=1"
     camera_id = "admin"
     camera_password = "AdminAdmin1"
     source = "rtsp://" + camera_id + ":" + camera_password + "@" + IP_address + ":554/cam/realmonitor?channel=1&subtype=1"
     print (source)
 
     # Get the size of source
-    vcap = cv2.VideoCapture(source) # 0=camera
- 
+    vcap = cv2.VideoCapture(source) # 0=camera 
     if vcap.isOpened(): 
         width  = int(vcap.get(3))  # float `width`
         height = int(vcap.get(4))  # float `height`
@@ -164,7 +188,7 @@ def run(
 
     # out_writter = cv2.VideoWriter('samples/video_1.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 25, (640, 480))
     out_writter = cv2.VideoWriter('samples/video_1.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 25, (width, height))
-    
+
     store_video_flag = True
                           
     source = str(source)
@@ -286,18 +310,22 @@ def run(
             if min % 10 == 0 and cur_min != pre_min:	# For 10 mins, filter out same min
                 current_count = int(sum)
                 timestamp = str(datetime.now())
-                # url_link = 'https://bp.zdaly.com:5010/api/Survey/SaveVideoAnalytics?'+ 'CustomerID=' + str(self.CustomerID) + '&StationID=' +
-# str(self.StationID) + \
-#             '&NameOfMetric=' + str(NameOfMetric) + '&Value=' + str(current_count) +'&Created=' + timestamp+'&Camera_Category=' + Camera_Category
+                '''
+                url_link = """ 'https://bp.zdaly.com:5010/api/Survey/SaveVideoAnalytics?'+ 'CustomerID=' + str(self.CustomerID) + '&StationID=' +       
+                           str(self.StationID) + '&NameOfMetric=' + str(NameOfMetric) +  '&Value=' + str(current_count) +'&Created=' +       
+                           timestamp + '&Camera_Category=' + Camera_Category """
+                '''                
 
-#                req = requests.post(url_link)
+                url_link = 'https://bp.zdaly.com:5010/api/Survey/SaveVideoAnalytics?CustomerID=251&StationID=408367007383835&NameOfMetric=CarsNumber&Value=' + str(current_count) + '&Created=' + str(timestamp) + '&Camera_Category=' + Camera_Category
+
+                req = requests.post(url_link)
 
                 with open(local_file_name, "a") as f:
                     outLine = str(CustomerID) + "," +  str(StationID) + "," + str(NameOfMetric) + "," + str(current_count) + "," + str(timestamp) + "," + Camera_Category + "\n"
                     f.write(outLine)
             
             pre_min = cur_min
-            print ("Draw a line and count")
+            # print ("Draw a line and count")
             # Finish testing
 
             imc = im0.copy() if save_crop else im0  # for save_crop
