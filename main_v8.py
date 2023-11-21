@@ -250,6 +250,7 @@ def run(
     start_time = datetime.now()
     pre_min = start_time.minute
     sum = 0
+    directions = dict()
 
     # Dataloader
     bs = 1  # batch_size
@@ -276,7 +277,6 @@ def run(
     model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(), Profile(), Profile())
     for path, im, im0s, vid_cap, s in dataset:
-        curr_directions = dict()
         with dt[0]:
             # Test
             # im = cv2.rotate(im, cv2.ROTATE_180)
@@ -318,7 +318,7 @@ def run(
             # Testing
             cv2.line(im0, start_point, end_point, color, thickness)
             cv2.putText(im0, "Count: " + str(int(sum)), (50, 50), cv2.FONT_HERSHEY_SIMPLEX , 1.75, (0, 0, 255), 1, cv2.LINE_AA)
-            direction_text = ','.join([f'{DIRECTION_MAPPING.get(k,"-")}: {len(v)}' for k,v in curr_directions.items() if len(v) > 0])
+            direction_text = ','.join([f'{DIRECTION_MAPPING.get(k,"-")}: {len(v)}' for k,v in directions.items() if len(v) > 0])
             cv2.putText(im0, direction_text, (50, height), cv2.FONT_HERSHEY_SIMPLEX , 1.75, (0, 0, 255), 1, cv2.LINE_AA)
 
             # Write output to results
@@ -437,7 +437,7 @@ def run(
                                     # print (start_point, end_point, pre_point, cur_point)
                                     sum += 1
                                     direction = determine_direction(pre_point, cur_point)
-                                    curr_directions[direction] = curr_directions.get(direction, []) + [cur_point]
+                                    directions[direction] = directions.get(direction, []) + [cur_point]
                                     print ("intersection found")
                      
                                     cv2.line(im0, start_point, end_point, color, thickness)
