@@ -101,15 +101,15 @@ def isintersect(a1, b1, a2, b2):
     return False
 
 DIRECTION_MAPPING = {
-    (0, 0)   : '-',
-    (0, 1)   : 'L',
-    (0, -1)  : 'R',
-    (1, 0)   : 'D',
-    (1, 1)   : 'DL',
-    (1, -1)  : 'DR',
-    (-1, 0)  : 'U',
-    (-1, 1)  : 'UL',
-    (-1, -1) : 'UR',
+    (0, 0)   : '-',     # STILL
+    (0, 1)   : 'L',     # LEFT     
+    (0, -1)  : 'R',     # RIGHT
+    (1, 0)   : 'D',     # DOWN
+    (1, 1)   : 'DL',    # DOWN LEFT
+    (1, -1)  : 'DR',    # DOWN RIGHT
+    (-1, 0)  : 'U',     # UP
+    (-1, 1)  : 'UL',    # UP LEFT
+    (-1, -1) : 'UR',    # UP RIGHT
 }
 
 # To Detect direction of Object
@@ -318,7 +318,7 @@ def run(
             # Testing
             cv2.line(im0, start_point, end_point, color, thickness)
             cv2.putText(im0, "Count: " + str(int(sum)), (50, 50), cv2.FONT_HERSHEY_SIMPLEX , 1.75, (0, 0, 255), 1, cv2.LINE_AA)
-            direction_text = ', '.join([f'{DIRECTION_MAPPING.get(k,"-")}: {len(v)}' for k,v in curr_directions.items() if len(v) > 0])
+            direction_text = ','.join([f'{DIRECTION_MAPPING.get(k,"-")}: {len(v)}' for k,v in curr_directions.items() if len(v) > 0])
             cv2.putText(im0, direction_text, (50, height), cv2.FONT_HERSHEY_SIMPLEX , 1.75, (0, 0, 255), 1, cv2.LINE_AA)
 
             # Write output to results
@@ -348,7 +348,7 @@ def run(
                 req = requests.post(url_link)
 
                 with open(local_file_name, "a") as f:
-                    outLine = str(CustomerID) + "," +  str(StationID) + "," + str(NameOfMetric) + "," + str(current_count) + "," + str(timestamp) + "," + Camera_Category + "\n"
+                    outLine = str(CustomerID) + "," +  str(StationID) + "," + str(NameOfMetric) + "," + str(current_count) + "," + str(timestamp) + "," + Camera_Category + "," + direction_text + "\n"
                     f.write(outLine)
             
             pre_min = cur_min
@@ -423,8 +423,6 @@ def run(
                                 pre_point = (int(min_point[0]), int(min_point[1]))
                                 cur_point = (int(center_x), int(center_y))
 
-                                direction = determine_direction(pre_point, cur_point)
-                                curr_directions[direction] = curr_directions.get(direction, []) + [cur_point]
                     
                                 # print ("pre_point: ", pre_point)
                                 # print ("cur_point: ", cur_point)
@@ -438,6 +436,8 @@ def run(
                  
                                     # print (start_point, end_point, pre_point, cur_point)
                                     sum += 1
+                                    direction = determine_direction(pre_point, cur_point)
+                                    curr_directions[direction] = curr_directions.get(direction, []) + [cur_point]
                                     print ("intersection found")
                      
                                     cv2.line(im0, start_point, end_point, color, thickness)
