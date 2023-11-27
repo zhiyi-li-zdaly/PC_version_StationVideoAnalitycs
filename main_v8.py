@@ -124,6 +124,18 @@ def determine_direction(prev_center, current_center):
     dir_h = 1 if h_dis > 0  else -1 if h_dis < 0 else 0
     return dir_v, dir_h
 
+def is_intersect_v2(line, box_lines):
+
+    ccw = lambda x1, y1, x2, y2, x3, y3: (y3 - y1) * (x2 - x1) > (y2 - y1) * (x3-x1)
+    intersect = lambda x1, y1, x2, y2, x3, y3, x4, y4: ccw(x1, y1, x3, y3, x4, y4) != ccw(x2, y2, x3, y3, x4, y4) and ccw(x1, y1, x2, y2, x3, y3) != ccw(x1, y1, x2, y2, x4, y4)
+
+    (x1, y1), (x2, y2) = line
+    for ((x3, y3), (x4, y4)) in box_lines:
+        if intersect(x1, y1, x2, y2, x3, y3, x4, y4):
+            return True
+    return False
+
+
 @smart_inference_mode()
 def run(
         weights=ROOT / 'yolov5s.pt',  # model path or triton URL
@@ -318,7 +330,7 @@ def run(
             # Testing
             cv2.line(im0, start_point, end_point, color, thickness)
             cv2.putText(im0, "Count: " + str(int(sum)), (50, 50), cv2.FONT_HERSHEY_SIMPLEX , 1.75, (0, 0, 255), 1, cv2.LINE_AA)
-            direction_text = ','.join([f'{DIRECTION_MAPPING.get(k,"-")}: {len(v)}' for k,v in directions.items() if len(v) > 0])
+            direction_text = ','.join([f'{DIRECTION_MAPPING.get(k,"-")}: {v}' for k,v in directions.items()])
             cv2.putText(im0, direction_text, (50, height), cv2.FONT_HERSHEY_SIMPLEX , 1.75, (0, 0, 255), 1, cv2.LINE_AA)
 
             # Write output to results
@@ -391,7 +403,13 @@ def run(
                             ymin = xyxy[1].int()
                             xmax = xyxy[2].int()
                             ymax = xyxy[3].int()
-                        
+                            bounding_box = [
+                                ((xmin, ymin), (xmin, ymax)),
+                                ((xmin, ymax), (xmax, ymax)),
+                                ((xmax, ymax), (xmax, ymin)),
+                                ((xmax, ymin), (xmin, ymin))
+                            ]
+
                             # Center of objects
                             center_x = xmin + (xmax - xmin) / 2
                             center_y = ymin + (ymax - ymin) / 2
@@ -415,7 +433,7 @@ def run(
                                     min_dist = dist
                                     min_point = pt
 
-                            if min_dist < 50:       # Find it
+                            if min_dist < 80:       # Find it
                                 print ("Same vehicle")
                 
                                 same_object_detected = True
@@ -432,12 +450,12 @@ def run(
                                 cv2.line(im0, pre_point, cur_point, color, thickness)
                     
                                 # Check whether the line is intersect with virutal line
-                                if isintersect(start_point, end_point, pre_point, cur_point):
-                 
+                                # if isintersect(start_point, end_point, pre_point, cur_point):
                                     # print (start_point, end_point, pre_point, cur_point)
+                                if is_intersect_v2((start_point, end_point), bounding_box):
                                     sum += 1
                                     direction = determine_direction(pre_point, cur_point)
-                                    directions[direction] = directions.get(direction, []) + [cur_point]
+                                    directions[direction] = directions.get(direction,0) + 1
                                     print ("intersection found")
                      
                                     cv2.line(im0, start_point, end_point, color, thickness)
