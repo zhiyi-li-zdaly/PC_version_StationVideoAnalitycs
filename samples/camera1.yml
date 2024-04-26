@@ -1,0 +1,6 @@
+camera:
+  IP_address: 192.168.1.127
+  start_point: (178,292)
+  end_point: (261,397)
+customer_id: 403
+station_id: 297375709555895
